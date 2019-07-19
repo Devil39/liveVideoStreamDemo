@@ -1,0 +1,83 @@
+<!doctype hmtl>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Document</title>
+
+        <!--<link rel="stylesheet" href="./css/main.css">-->
+        <style>
+            .booth{
+                width: 400px;
+                background-color: #ccc;
+                border: 10px solid #ddd;
+                margin: 0 auto;
+             }
+            .booth-capture-button{
+                display: block;
+                margin: 10px 0;
+                padding: 10px 20px;
+                background-color: cornflowerblue;
+                color: #fff;
+                text-align: center;
+                text-decoration: none;
+             }
+            #canvas{
+                display: none;
+            }
+        </style>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.4/socket.io.js"></script>
+        <script>
+            function start(){
+                var socket = io();
+                var video=document.getElementById('video'),
+                    canvas=document.getElementById('canvas'),
+                    context=canvas.getContext('2d'),
+                    photo=document.getElementById('photo')
+                    vendorUrl=window.URL || window.webKitURL;
+
+                    navigator.getMedia=navigator.getUserMedia ||
+                                    navigator.webkitGetUserMedia||
+                                    navigator.mozGetUserMedia ||
+                                    navigator.msGetUserMedia;
+                    
+                    navigator.getMedia({
+                        video: true,
+                        audio: false
+                    }, function(stream){
+                        video.srcObject=stream;
+                        video.play();
+                        setInterval(()=>{
+                            //console.log(canvas.toDataURL('image/png'));
+                            context.drawImage(video, 0, 0, 400, 300);
+                            //photo.setAttribute('src', canvas.toDataURL('image/png'));
+                            socket.emit('send', canvas.toDataURL('image/png'));
+                            socket.on('test', (data)=>{
+                                //console.log("Hullo!");
+                                photo.setAttribute('src', data);
+                            });
+                            console.log("Emitted!");
+                        }, 1000/100);
+                    }, function(error){
+
+                    });
+
+                    document.getElementById('capture').addEventListener('click', ()=>{
+                        context.drawImage(video, 0, 0, 400, 300);
+                        //photo.setAttribute('src', canvas.toDataURL('image/png'));
+                    })
+            }
+        </script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js" integrity="sha256-yr4fRk/GU1ehYJPAs8P4JlTgu0Hdsp4ZKrx8bDEDC3I=" crossorigin="anonymous"></script>
+    </head>
+    <body>
+        <div class="booth">
+            <video id="video" width="400" height="300"></video>
+            <a href="#" id="capture" class="booth-capture-button">Take photo</a>
+            <canvas id="canvas" width="400" height="300"></canvas>
+            <img id="photo" src="http://placekitten.com/g/200/300" alt="Loading"/>
+        </div>
+        <button type="button" onclick="start();">Click</button>
+        <!--<script src="js/photo.js"></script>-->
+        <!--<script src="/socket.io/socket.io.js"></script>-->
+    </body>
+</html>
